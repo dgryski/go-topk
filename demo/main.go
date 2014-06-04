@@ -7,13 +7,17 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/dgryski/go-topk"
 )
 
 func main() {
 
+	k := flag.Int("n", 500, "k")
 	f := flag.String("f", "", "file to read")
+	counts := flag.Bool("c", false, "each item has a count associated with it")
 
 	flag.Parse()
 
@@ -29,14 +33,30 @@ func main() {
 		}
 	}
 
-	tk := topk.New(500)
+	tk := topk.New(*k)
 	sc := bufio.NewScanner(r)
 
-	items := 0
-
 	for sc.Scan() {
-		items++
-		tk.Insert(sc.Text())
+		line := sc.Text()
+
+		var count int
+		var item string
+
+		if *counts {
+			fields := strings.Fields(line)
+			cint, err := strconv.Atoi(fields[1])
+			if err != nil {
+				log.Println("failed to parse count: ", fields[1], ":", err)
+				continue
+			}
+			item = fields[0]
+			count = cint
+		} else {
+			item = line
+			count = 1
+		}
+
+		tk.Insert(item, count)
 	}
 
 	if err := sc.Err(); err != nil {
