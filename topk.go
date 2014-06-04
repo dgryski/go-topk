@@ -85,7 +85,7 @@ func New(n int) *Stream {
 }
 
 // Insert adds an element to the stream to be tracked
-func (s *Stream) Insert(x string) {
+func (s *Stream) Insert(x string, count int) {
 
 	h := fnv.New32a()
 	h.Write([]byte(x))
@@ -93,7 +93,7 @@ func (s *Stream) Insert(x string) {
 
 	// are we tracking this element?
 	if idx, ok := s.k.m[x]; ok {
-		s.k.elts[idx].Count++
+		s.k.elts[idx].Count += count
 		heap.Fix(&s.k, idx)
 		return
 	}
@@ -101,12 +101,12 @@ func (s *Stream) Insert(x string) {
 	// can we track more elements?
 	if len(s.k.elts) < s.n {
 		// there is free space
-		heap.Push(&s.k, Element{Key: x, Count: 1})
+		heap.Push(&s.k, Element{Key: x, Count: count})
 		return
 	}
 
-	if s.alphas[xhash]+1 < s.k.elts[0].Count {
-		s.alphas[xhash]++
+	if s.alphas[xhash]+count < s.k.elts[0].Count {
+		s.alphas[xhash] += count
 		return
 	}
 
@@ -120,7 +120,7 @@ func (s *Stream) Insert(x string) {
 
 	s.k.elts[0].Key = x
 	s.k.elts[0].Error = s.alphas[xhash]
-	s.k.elts[0].Count = s.alphas[xhash] + 1
+	s.k.elts[0].Count = s.alphas[xhash] + count
 
 	// we're not longer monitoring minKey
 	delete(s.k.m, minKey)
