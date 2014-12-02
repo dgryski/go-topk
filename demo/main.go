@@ -64,6 +64,6 @@ func main() {
 	}
 
 	for _, v := range tk.Keys() {
-		fmt.Println(v.Key, v.Count)
+		fmt.Println(v.Key, v.Count, v.Error)
 	}
 }
