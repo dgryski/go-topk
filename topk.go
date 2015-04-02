@@ -12,6 +12,8 @@ suggested implementation.  Specifically, we use a heap instead of a sorted list
 of monitored items, and since we are also using a map to provide O(1) access on
 update also don't need the c_i counters in the hash table.
 
+Licensed under the MIT license.
+
 */
 package topk
 
