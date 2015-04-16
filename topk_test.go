@@ -2,6 +2,7 @@ package topk
 
 import (
 	"bufio"
+	"log"
 	"os"
 	"sort"
 	"testing"
@@ -40,6 +41,10 @@ func TestTopK(t *testing.T) {
 
 		exact[item]++
 		tk.Insert(item, 1)
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Println("error during scan: ", err)
 	}
 
 	var keys []string
