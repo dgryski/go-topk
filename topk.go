@@ -18,7 +18,9 @@ Licensed under the MIT license.
 package topk
 
 import (
+	"bytes"
 	"container/heap"
+	"encoding/gob"
 	"hash/fnv"
 	"sort"
 )
@@ -139,4 +141,39 @@ func (s *Stream) Keys() []Element {
 	elts := append([]Element(nil), s.k.elts...)
 	sort.Sort(elementsByCountDescending(elts))
 	return elts
+}
+
+func (s *Stream) GobEncode() ([]byte, error) {
+	buf := bytes.Buffer{}
+	enc := gob.NewEncoder(&buf)
+	if err := enc.Encode(s.n); err != nil {
+		return nil, err
+	}
+	if err := enc.Encode(s.k.m); err != nil {
+		return nil, err
+	}
+	if err := enc.Encode(s.k.elts); err != nil {
+		return nil, err
+	}
+	if err := enc.Encode(s.alphas); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (s *Stream) GobDecode(b []byte) error {
+	dec := gob.NewDecoder(bytes.NewBuffer(b))
+	if err := dec.Decode(&s.n); err != nil {
+		return err
+	}
+	if err := dec.Decode(&s.k.m); err != nil {
+		return err
+	}
+	if err := dec.Decode(&s.k.elts); err != nil {
+		return err
+	}
+	if err := dec.Decode(&s.alphas); err != nil {
+		return err
+	}
+	return nil
 }

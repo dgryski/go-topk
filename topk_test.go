@@ -2,8 +2,11 @@ package topk
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/gob"
 	"log"
 	"os"
+	"reflect"
 	"sort"
 	"testing"
 )
@@ -64,5 +67,22 @@ func TestTopK(t *testing.T) {
 		if top[i].Key != freq.keys[i] {
 			t.Errorf("key mismatch: idx=%d top=%s (%d) exact=%s (%d)", i, top[i].Key, top[i].Count, freq.keys[i], freq.counts[freq.keys[i]])
 		}
+	}
+
+	// gob
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	if err := enc.Encode(tk); err != nil {
+		t.Error(err)
+	}
+
+	decoded := New(100)
+	dec := gob.NewDecoder(&buf)
+	if err := dec.Decode(decoded); err != nil {
+		t.Error(err)
+	}
+
+	if !reflect.DeepEqual(tk, decoded) {
+		t.Error("they are not equal.")
 	}
 }
