@@ -21,8 +21,9 @@ import (
 	"bytes"
 	"container/heap"
 	"encoding/gob"
-	"hash/fnv"
 	"sort"
+
+	"github.com/dgryski/go-sip13"
 )
 
 // Element is a TopK item
@@ -90,12 +91,14 @@ func New(n int) *Stream {
 	}
 }
 
+func reduce(x uint64, n int) uint32 {
+	return uint32(uint64(uint32(x)) * uint64(n) >> 32)
+}
+
 // Insert adds an element to the stream to be tracked
 func (s *Stream) Insert(x string, count int) {
 
-	h := fnv.New32a()
-	h.Write([]byte(x))
-	xhash := int(h.Sum32()) % len(s.alphas)
+	xhash := reduce(sip13.Sum64Str(0, 0, x), len(s.alphas))
 
 	// are we tracking this element?
 	if idx, ok := s.k.m[x]; ok {
@@ -119,9 +122,7 @@ func (s *Stream) Insert(x string, count int) {
 	// replace the current minimum element
 	minKey := s.k.elts[0].Key
 
-	h.Reset()
-	h.Write([]byte(minKey))
-	mkhash := int(h.Sum32()) % len(s.alphas)
+	mkhash := reduce(sip13.Sum64Str(0, 0, minKey), len(s.alphas))
 	s.alphas[mkhash] = s.k.elts[0].Count
 
 	s.k.elts[0].Key = x
