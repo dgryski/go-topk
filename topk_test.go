@@ -20,7 +20,7 @@ func (f freqs) Len() int { return len(f.keys) }
 
 // Actually 'Greater', since we want decreasing
 func (f *freqs) Less(i, j int) bool {
-	return f.counts[f.keys[i]] >= f.counts[f.keys[j]] || f.counts[f.keys[i]] == f.counts[f.keys[j]] && f.keys[i] < f.keys[j]
+	return f.counts[f.keys[i]] > f.counts[f.keys[j]] || f.counts[f.keys[i]] == f.counts[f.keys[j]] && f.keys[i] < f.keys[j]
 }
 
 func (f *freqs) Swap(i, j int) { f.keys[i], f.keys[j] = f.keys[j], f.keys[i] }
