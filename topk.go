@@ -96,27 +96,35 @@ func reduce(x uint64, n int) uint32 {
 }
 
 // Insert adds an element to the stream to be tracked
-func (s *Stream) Insert(x string, count int) {
+// It returns an estimation for the just inserted element
+func (s *Stream) Insert(x string, count int) Element {
 
 	xhash := reduce(sip13.Sum64Str(0, 0, x), len(s.alphas))
 
 	// are we tracking this element?
 	if idx, ok := s.k.m[x]; ok {
 		s.k.elts[idx].Count += count
+		e := s.k.elts[idx]
 		heap.Fix(&s.k, idx)
-		return
+		return e
 	}
 
 	// can we track more elements?
 	if len(s.k.elts) < s.n {
 		// there is free space
-		heap.Push(&s.k, Element{Key: x, Count: count})
-		return
+		e := Element{Key: x, Count: count}
+		heap.Push(&s.k, e)
+		return e
 	}
 
 	if s.alphas[xhash]+count < s.k.elts[0].Count {
+		e := Element{
+			Key:   x,
+			Error: s.alphas[xhash],
+			Count: s.alphas[xhash] + count,
+		}
 		s.alphas[xhash] += count
-		return
+		return e
 	}
 
 	// replace the current minimum element
@@ -125,9 +133,12 @@ func (s *Stream) Insert(x string, count int) {
 	mkhash := reduce(sip13.Sum64Str(0, 0, minKey), len(s.alphas))
 	s.alphas[mkhash] = s.k.elts[0].Count
 
-	s.k.elts[0].Key = x
-	s.k.elts[0].Error = s.alphas[xhash]
-	s.k.elts[0].Count = s.alphas[xhash] + count
+	e := Element{
+		Key:   x,
+		Error: s.alphas[xhash],
+		Count: s.alphas[xhash] + count,
+	}
+	s.k.elts[0] = e
 
 	// we're not longer monitoring minKey
 	delete(s.k.m, minKey)
@@ -135,6 +146,7 @@ func (s *Stream) Insert(x string, count int) {
 	s.k.m[x] = 0
 
 	heap.Fix(&s.k, 0)
+	return e
 }
 
 // Keys returns the current estimates for the most frequent elements
@@ -142,6 +154,24 @@ func (s *Stream) Keys() []Element {
 	elts := append([]Element(nil), s.k.elts...)
 	sort.Sort(elementsByCountDescending(elts))
 	return elts
+}
+
+// Estimate returns an estimate for the item x
+func (s *Stream) Estimate(x string) Element {
+	xhash := reduce(sip13.Sum64Str(0, 0, x), len(s.alphas))
+
+	// are we tracking this element?
+	if idx, ok := s.k.m[x]; ok {
+		e := s.k.elts[idx]
+		return e
+	}
+	count := s.alphas[xhash]
+	e := Element{
+		Key:   x,
+		Error: count,
+		Count: count,
+	}
+	return e
 }
 
 func (s *Stream) GobEncode() ([]byte, error) {
