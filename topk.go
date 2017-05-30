@@ -37,7 +37,7 @@ type elementsByCountDescending []Element
 
 func (elts elementsByCountDescending) Len() int { return len(elts) }
 func (elts elementsByCountDescending) Less(i, j int) bool {
-	return (elts[i].Count >= elts[j].Count) || (elts[i].Count == elts[j].Count && elts[i].Key < elts[j].Key)
+	return (elts[i].Count > elts[j].Count) || (elts[i].Count == elts[j].Count && elts[i].Key < elts[j].Key)
 }
 func (elts elementsByCountDescending) Swap(i, j int) { elts[i], elts[j] = elts[j], elts[i] }
 
