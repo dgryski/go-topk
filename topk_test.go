@@ -43,7 +43,13 @@ func TestTopK(t *testing.T) {
 		item := scanner.Text()
 
 		exact[item]++
-		tk.Insert(item, 1)
+		e := tk.Insert(item, 1)
+		if e.Count < exact[item] {
+			t.Errorf("estimate lower than exact: key=%v, exact=%v, estimate=%v", e.Key, exact[item], e.Count)
+		}
+		if e.Count-e.Error > exact[item] {
+			t.Errorf("error bounds too large: key=%v, count=%v, error=%v, exact=%v", e.Key, e.Count, e.Error, exact[item])
+		}
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -66,6 +72,21 @@ func TestTopK(t *testing.T) {
 	for i := 0; i < 25; i++ {
 		if top[i].Key != freq.keys[i] {
 			t.Errorf("key mismatch: idx=%d top=%s (%d) exact=%s (%d)", i, top[i].Key, top[i].Count, freq.keys[i], freq.counts[freq.keys[i]])
+		}
+	}
+	for k, v := range exact {
+		e := tk.Estimate(k)
+		if e.Count < v {
+			t.Errorf("estimate lower than exact: key=%v, exact=%v, estimate=%v", e.Key, v, e.Count)
+		}
+		if e.Count-e.Error > v {
+			t.Errorf("error bounds too large: key=%v, count=%v, error=%v, exact=%v", e.Key, e.Count, e.Error, v)
+		}
+	}
+	for _, k := range top {
+		e := tk.Estimate(k.Key)
+		if e != k {
+			t.Errorf("estimate differs from top keys: key=%v, estimate=%v(-%v) top=%v(-v)", e.Key, e.Count, e.Error, k.Count, k.Error)
 		}
 	}
 
