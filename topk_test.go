@@ -86,7 +86,7 @@ func TestTopK(t *testing.T) {
 	for _, k := range top {
 		e := tk.Estimate(k.Key)
 		if e != k {
-			t.Errorf("estimate differs from top keys: key=%v, estimate=%v(-%v) top=%v(-v)", e.Key, e.Count, e.Error, k.Count, k.Error)
+			t.Errorf("estimate differs from top keys: key=%v, estimate=%v(-%v) top=%v(-%v)", e.Key, e.Count, e.Error, k.Count, k.Error)
 		}
 	}
 
