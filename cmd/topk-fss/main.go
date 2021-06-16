@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dgryski/go-topk"
+	"github.com/amanjpro/go-topk"
 )
 
 func main() {
