@@ -97,7 +97,7 @@ func reduce(x uint64, n int) uint32 {
 
 // Insert adds an element to the stream to be tracked
 // It returns an estimation for the just inserted element
-func (s *Stream) Insert(x string, count int) Element {
+func (s *Stream) Insert(x string, count int) (Element, bool) {
 
 	xhash := reduce(sip13.Sum64Str(0, 0, x), len(s.alphas))
 
@@ -106,7 +106,7 @@ func (s *Stream) Insert(x string, count int) Element {
 		s.k.elts[idx].Count += count
 		e := s.k.elts[idx]
 		heap.Fix(&s.k, idx)
-		return e
+		return e, false
 	}
 
 	// can we track more elements?
@@ -114,7 +114,7 @@ func (s *Stream) Insert(x string, count int) Element {
 		// there is free space
 		e := Element{Key: x, Count: count}
 		heap.Push(&s.k, e)
-		return e
+		return e, true
 	}
 
 	if s.alphas[xhash]+count < s.k.elts[0].Count {
@@ -124,7 +124,7 @@ func (s *Stream) Insert(x string, count int) Element {
 			Count: s.alphas[xhash] + count,
 		}
 		s.alphas[xhash] += count
-		return e
+		return e, true
 	}
 
 	// replace the current minimum element
@@ -146,7 +146,7 @@ func (s *Stream) Insert(x string, count int) Element {
 	s.k.m[x] = 0
 
 	heap.Fix(&s.k, 0)
-	return e
+	return e, true
 }
 
 // Keys returns the current estimates for the most frequent elements

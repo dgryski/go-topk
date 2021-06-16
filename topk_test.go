@@ -43,7 +43,7 @@ func TestTopK(t *testing.T) {
 		item := scanner.Text()
 
 		exact[item]++
-		e := tk.Insert(item, 1)
+		e, _ := tk.Insert(item, 1)
 		if e.Count < exact[item] {
 			t.Errorf("estimate lower than exact: key=%v, exact=%v, estimate=%v", e.Key, exact[item], e.Count)
 		}
